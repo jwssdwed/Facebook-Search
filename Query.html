@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+	<meta charset="utf-8">
+
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- Latest compiled and minified CSS -->
+		  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js"></script>
+		  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+		  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js"></script>
+		<script src="fb_script.js"></script>
+		<title>FB Search</title>
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<div class="container-fluid">
+			<div id="userQuery" ng-app="user" ng-controller="myUser">
+			<div class="row">
+				<div class="col-sm-4 header">
+					<h3 style="color:#3b5998;">FB Search</h3>
+				</div>
+				<div class="col-sm-8 header" style="text-align:center">
+					<form>
+					    <div class="input-group">
+					      <input  id="keyword" data-toggle="tooltip" data-trigger="manual" data-placement="bottom" title="please type a keyword!" type="text" class="form-control keyword" placeholder="Type something...">
+					      <div class="input-group-btn">
+					        <button id="searchClick" class="btn btn-primary searchBar1 btn-custom" style="margin-top:12px" ng-click="search()" ><i class="glyphicon glyphicon-search"></i></button>
+					      </div>
+							<button class="btn btn-default searchBar" style="float:left;margin-left:30px;margin-top:-25pt; color: #3b5998;" ng-click="clearAll()" type="submit">Clear</button>
+					    </div>
+				  	</form>
+				</div>
+			</div>
+				<div class="row" style="margin-bottom:10px">
+					<ul id="navBar" class="nav nav-tabs navbar-custom" style="width:100%">
+					  <li role="presentation" class="nav active"><a href="#user" data-toggle="tab" ng-click="changeType('user')">Users</a></li>
+					  <li role="presentation" class="nav"><a href="#page" data-toggle="tab" ng-click="changeType('page')">Pages</a></li>
+					  <li role="presentation" class="nav"><a href="#event" data-toggle="tab" ng-click="changeType('event')">Events</a></li>
+					  <li role="presentation" class="nav"><a href="#place" data-toggle="tab" ng-click="changeType('place')">Places</a></li>
+					  <li role="presentation" class="nav"><a href="#group" data-toggle="tab" ng-click="changeType('group')">Groups</a></li>
+					  <li role="presentation" class="nav"><a href="#favorites" data-toggle="tab" ng-click="changeType('favorite')">Favorites</a></li>
+					</ul>
+				</div>
+				<div ng-switch="isLoading">
+					<div class="row" ng-switch-when="true">
+						<div class="progress table-progress">
+				            <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
+				              <span class="sr-only">50% Complete</span>
+				            </div>
+				        </div>
+					</div>
+					<div ng-switch-when="false">
+					<div ng-switch="myContent">
+						<div class="slide-left" ng-switch-when="detail">
+							<div class="row" style="margin-top:20px">
+								<div class = "col-sm-6">
+									<button type="button" class="btn btn-default" ng-click="back()"><i class="glyphicon glyphicon-chevron-left"></i>Back
+									</button>
+								</div>
+								<div ng-show="!isLoadingDetail"class = "col-sm-6" style="text-align:right">
+									<div ng-switch="isFavorited">
+			                        	<div ng-switch-when="false">
+			                        		<a ng-click="favorite(myContent,0,userId,userProfile,userName,whatType)"><i  id="iconDetail_0" class="glyphicon glyphicon-star-empty tableIcon"></i></a>
+											<a ng-click="post(fbProfile,fbName)"><img src="http://cs-server.usc.edu:45678/hw/hw8/images/facebook.png" height="32px" width="38px" style="margin-top:-4px; padding: 5px 7px 5px 7px;" class="tableIcon"></a>
+			                        	</div>
+			                        	<div ng-switch-when="true">
+					                        <a  ng-click="favorite(myContent,0,userId,userProfile,userName,whatType)">
+					                        	<i id="iconDetail_0" class="glyphicon glyphicon-star tableIcon" style="color:orange;"></i>
+					                        </a>
+											<a ng-click="post(fbProfile,fbName)"><img src="http://cs-server.usc.edu:45678/hw/hw8/images/facebook.png" height="32px" width="38px" style="margin-top:-4px; padding: 5px 7px 5px 7px;" class="tableIcon"></a>
+			                        	</div>
+			                        </div>
+								</div>
+							</div>
+							<div class="row" style="margin-top:20px">
+								<div class="col-sm-6">
+									<div class="panel panel-default">
+									  <div class="panel-heading">Albums</div>
+									  <div class="panel-body" style="margin-top:20px">
+									  	<div ng-show="isLoadingDetail">
+									  		<div class="progress">
+									            <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
+									              <span class="sr-only">50% Complete</span>
+									            </div>
+									        </div>
+									  	</div>
+									  	<div ng-show="!isLoadingDetail">
+									  		<div id="accordion" ng-show="isAlbum">
+								    			<div class="panel panel-default" ng-repeat="item in detail['albums']['data']" style="margin-bottom:5px;" >
+												  <div id="album" class="panel-heading" style="margin-bottom:0px;"><a data-parent="#accordion" id="anchor_{{$index}}" data-toggle="collapse" data-parent="#accordion" href="#row_{{$index}}" aria-expanded="false" class="anchor">{{item["name"]}}</a></div>
+												  <div id="row_{{$index}}"  class="panel-collapse collapse" ng-class="{in:$index==0}"> 
+												  	<!--ng-class is used to expand the first album-->
+												  	<table class="table-hover" style="width:100%">
+												  		<tr ng-repeat="pic in item['photos']['data']">
+												  		<td>
+												  			<a ng-href="{{pic['picUrl']}}" target="_blank"><img ng-src="{{pic['picUrl']}}" style="margin-bottom:10px"><a>
+												  		</td>
+												  		</tr>
+												  	</table>
+												  </div>
+												</div>
+									  		</div>
+									  		<div ng-show="!isAlbum" class="alert alert-warning">
+								  				No data found.
+									  		</div>
+									  	</div>
+									  </div>
+									</div>
+								</div>
+								<div class="col-sm-6">
+									<div class="panel panel-default">
+									  <div class="panel-heading">Posts</div>
+									  <div class="panel-body">
+									  	<div ng-show="isLoadingDetail">
+									  		<div class="progress">
+									            <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
+									              <span class="sr-only">50% Complete</span>
+									            </div>
+									        </div>
+									  	</div>
+									  	<div class="!isLoadingDetail">
+									  		<div ng-show="isPost">
+											  	<div class="well" style="background:white" ng-repeat="item in detail['posts']['data']" >
+											  		<div class="row" style="margin-bottom:10px;">
+											  			<div class="col-sm-12">
+												  			<img id="imgSpecial" style="float:left" ng-src="{{fbProfile}}" height="45px" width="45px" style="margin-right:0;margin-left:0">	
+												  			<div id="decSpecial"  style="float:left;margin-left:20px">
+															  	<span style="font-weight:bold">{{fbName}}</span>
+															  	<br>
+															  	{{item["created_time"]}}
+												  			</div>
+											  			</div>
+											  		</div>
+											  		<p>{{item["message"]}}</p>
+											  	</div>
+									  		</div>
+									  		<div ng-show="!isPost"class="alert alert-warning">
+									  			No dat found.
+									  		</div>
+									  	</div>
+									  </div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="slide-right" ng-switch-when="table">
+			                <div class="table-responsive">        
+			                  <table class="table table-hover">
+			                    <thead>
+			                      <tr>
+			                        <th>#</th>
+			                        <th>Profile photo</th>
+			                        <th>Name</th>
+			                        <th>Favorite</th>
+			                        <th>Detail</th>
+			                      </tr>
+			                    </thead>
+			                    <tbody>
+			                      <tr ng-repeat="info in userRes">
+			                        <td style="margin:0 auto; font-weight:bold"  class="center-block">
+			                          {{$index+1}}
+			                        </td>
+			                        <td><a ng-href="{{info['picture']['data']['url']}}" target="_blank"><img ng-src="{{info['picture']['data']['url']}}" class="img-circle" height = 40px width= 40px> </img></a></td>
+			                        <td>{{info['name']}}</td>
+			                        <td>
+			                        	<div ng-switch="info['favorited']">
+				                        	<div ng-switch-when="false">
+				                        		<a ng-click="favorite(myContent,$index,info['id'],info['picture']['data']['url'],info['name'],whatType)"><i id="icon_{{$index}}" class="glyphicon glyphicon-star-empty tableIcon"></i></a>
+				                        	</div>
+				                        	<div ng-switch-when="true">
+						                        <a  ng-click="favorite(myContent,$index,info['id'],info['picture']['data']['url'],info['name'],whatType)">
+						                        	<i id="icon_{{$index}}" class="glyphicon glyphicon-star tableIcon" style="color:orange;"></i>
+						                        </a>
+				                        	</div>
+				                        </div>
+			                    	</td>
+			                        <td><a ng-click="showDetail(info['id'],info['picture']['data']['url'],info['name'],whatType)"><i class="glyphicon glyphicon-chevron-right tableIcon"></i></a></td>
+			                      </tr>
+			                    </tbody>
+			                  </table>
+			                </div>
+				            <div class="row">
+				                <div ng-show="isPrevious && isNext">
+					                <ul class="pager">
+									  <li><a class = "pagniation" ng-click="showNext(user['paging'],0)">Previous</a></li>
+									  <li><a class = "pagniation" ng-click="showNext(user['paging'],1)">Next</a></li>
+									</ul>
+				                </div>
+				                <div ng-show="isNext && !isPrevious">
+					              	<div class="col-sm-12" style="text-align:center">
+					                  <button id="next" type="button" class="btn btn-default pagniation" ng-click="showNext(user['paging'], 1)">next</button>
+					                </div>
+				              	</div>
+				                <div ng-show="!isNext && isPrevious">
+				                	<div class="col-sm-12" style="text-align:center">
+				                  		<button id="previous" type="button" class="btn btn-default pagniation" ng-click="showNext(user['paging'], 0)">previous</button>
+				                  	</div>
+				                </div>
+				            </div>
+						</div>
+						<div ng-switch-when="favorite">
+							<div class="table-responsive">          
+			                  <table class="table table-hover">
+			                    <thead>
+			                      <tr>
+			                        <th>#</th>
+			                        <th>Profile photo</th>
+			                        <th>Name</th>
+			                        <th>type
+			                        </th>
+			                        <th>Favorite</th>
+			                        <th>Detail</th>
+			                      </tr>
+			                    </thead>
+			                    <tbody>
+			                      <tr ng-repeat="info in userRes">
+			                        <td style="margin:0 auto; font-weight:bold"  class="center-block">
+			                          {{$index+1}}
+			                        </td>
+			                        <td><a ng-href="{{info['pic']}}" target="_blank"><img ng-src="{{info['pic']}}" class="img-circle" height = 40px width= 40px> </img></a></td>
+			                        <td>{{info['name']}}</td>
+			                        <td>{{info['type']}}</td>
+			                        <td><a ng-click="deleteFavorite(info['id'])"><i class="glyphicon glyphicon-trash tableIcon"></i></a></td>
+			                        <td><a ng-click="showDetail(info['id'],info['pic'],info['name'],info['type'])"><i class="glyphicon glyphicon-chevron-right tableIcon"></i></a></td>
+			                      </tr>
+			                    </tbody>
+			                  </table>
+			                </div>
+						</div>
+						<div class="slide-right" ng-switch-when="favorite1">
+							<div class="table-responsive">          
+			                  <table class="table table-hover">
+			                    <thead>
+			                      <tr>
+			                        <th>#</th>
+			                        <th>Profile photo</th>
+			                        <th>Name</th>
+			                        <th>type
+			                        </th>
+			                        <th>Favorite</th>
+			                        <th>Detail</th>
+			                      </tr>
+			                    </thead>
+			                    <tbody>
+			                      <tr ng-repeat="info in userRes">
+			                        <td style="margin:0 auto; font-weight:bold"  class="center-block">
+			                          {{$index+1}}
+			                        </td>
+			                        <td><a ng-href="{{info['pic']}}" target="_blank"><img ng-src="{{info['pic']}}" class="img-circle" height = 40px width= 40px> </img></a></td>
+			                        <td>{{info['name']}}</td>
+			                        <td>{{info['type']}}</td>
+			                        <td><a ng-click="deleteFavorite(info['id'])"><i class="glyphicon glyphicon-trash tableIcon"></i></a></td>
+			                        <td><a ng-click="showDetail(info['id'],info['pic'],info['name'],info['type'])"><i class="glyphicon glyphicon-chevron-right tableIcon"></i></a></td>
+			                      </tr>
+			                    </tbody>
+			                  </table>
+			                </div>
+						</div>
+						<div ng-switch-default>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
